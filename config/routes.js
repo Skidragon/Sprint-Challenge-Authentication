@@ -9,7 +9,26 @@ module.exports = server => {
 };
 
 function register(req, res) {
-  // implement user registration
+  const user = req.body;
+
+  const hash = bcrypt.hashSync(user.password, 14);
+  user.password = hash;
+
+  db('users')
+    .insert(user)
+    .then(id => {
+      db('users')
+        .where({ id: id[0] })
+        .first()
+        .then(user => {
+          const token = generateToken(user);
+
+          res.status(201).json(token);
+        });
+    })
+    .catch(function(error) {
+      res.status(500).json({ error });
+    });
 }
 
 function login(req, res) {
